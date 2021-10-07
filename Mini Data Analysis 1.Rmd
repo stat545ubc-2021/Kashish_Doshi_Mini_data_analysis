@@ -1,0 +1,104 @@
+---
+title: "Mini Data Analysis 1"
+author: "Kashish Doshi"
+date: "05/10/2021"
+output: html_document
+---
+# Milestone 1 
+
+The goal of this project is to explore and analyze a data set from the datateachr package.
+
+### Installing and Loading the necessary packages
+```{r setup}
+#install.packages("devtools")
+#library(devtools)
+#devtools::install_github("UBC-MDS/datateachr")
+library(datateachr)
+library(tidyverse)
+```
+### 1.1 Selecting datasets
+
+4 data sets from the datateachr package were selected
+
+#### 1. Steam Games
+
+First let's look at the dimensions of the data set
+```{r}
+dim(steam_games)
+```
+Shows that __steam_games__ has 40,833 rows and 21 columns
+
+Next, let's look at the all the types of columns present 
+```{r}
+str(steam_games, stringsAsFactors=FALSE, vec.len = 3, give.length= FALSE, nchar.max=20)
+```
+
+Interestingly, The release dates for the games are not numeric. I would like to see if I can still arrange the data set according to the release dates
+```{r}
+steam_games %>% arrange(release_date) %>% head(n=5)
+```
+Seems like some of the dates are not even dates. If this data set is used ahead, these values may need to be edited. 
+
+
+#### 2 Vancouver Trees
+Again let's look at the dimensions of the data set
+```{r}
+dim(vancouver_trees)
+```
+Then, extract the different column names and types
+```{r}
+str(vancouver_trees, stringsAsFactors=FALSE, vec.len = 3, give.length= FALSE, nchar.max=20)
+
+```
+The diameter seems like an important variable for plotting and analysis so let's see how many trees do not have a diameter recorded 
+```{r}
+drop_na(vancouver_trees, diameter) %>% dim()
+
+```
+Fortunately, all trees have a diameter recorded!
+
+Maybe the Latitude and Longitude of the data set could be defined by a certain range to see if all the tree samples are neighboring each other or not.
+```{r}
+lat = vancouver_trees %>% select(latitude) %>% range(na.rm= TRUE) %>% as.character()
+cat("Latitudinal Range ", lat[1], " ", lat[2])
+long = vancouver_trees %>% select(longitude) %>% range(na.rm=TRUE)
+cat("Longitudinal Range ", long[1], " ", long[2])
+```
+Seems like all the trees in this data set are neighbors! 
+
+#### 3  Parking Meters
+
+Let's look at the dimensions of the data set
+```{r}
+dim(parking_meters)
+
+```
+There are 10032 rows and 22 columns
+
+Let's look at the type of data in this data set
+```{r}
+str(parking_meters, stringsAsFactors=FALSE, vec.len = 3, give.length= FALSE, nchar.max=20)
+
+```
+The columns have a weird name and I will have to guess what they mean 
+I am assuming column 2 which reads __r_mf_9a_6p__ means rate for 1 hour of parking from Monday through to Friday between 9 am and 6pm
+
+
+
+
+#### 4 Cancer Sample
+
+```{r}
+cancer_sample
+
+
+```
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
