@@ -8,17 +8,24 @@ output: html_document
 And hopefully the first of many. Let's get started:
 
 1. Install the [`datateachr`](https://github.com/UBC-MDS/datateachr) package by typing the following into your **R terminal**:
-
+(also installed the Wes Anderson colour palette; credit: https://github.com/karthik/wesanderson)
 ```
+install.packages("ggbreak")
 install.packages("devtools")
 devtools::install_github("UBC-MDS/datateachr")
+devtools::install_github("karthik/wesanderson")
+
+
 ```
 
 2. Load the packages below.
 
-```{r}
+```{r echo=FALSE}
 library(datateachr)
 library(tidyverse)
+library(tibble)
+library(viridis)
+library(ggbreak)
 ```
 
 3. Make a repository in the https://github.com/stat545ubc-2021 Organization. You will be working with this repository for the entire data analysis project. You can either make it public, or make it private and add the TA's and Vincenzo as collaborators. 
@@ -71,26 +78,114 @@ And that is exactly the first thing that you will do!
 
 **Note**: We encourage you to use the ones in the `datateachr` package, but if you have a dataset that you'd really like to use, you can include it here. But, please check with a member of the teaching team to see whether the dataset is of appropriate complexity. Also, include a **brief** description of the dataset here to help the teaching team understand your data.
 
-1: _steam_games_    
+1: _steam_games_  
 2: _vancouver_trees_    
 3: _parking_meters_    
-4: _cancer_sample_    
+4: _cancer_sample_ 
 
 1.2 One way to narrowing down your selection is to *explore* the datasets. Use your knowledge of dplyr to find out at least *3* attributes about each of these datasets (an attribute is something such as number of rows, variables, class type...). The goal here is to have an idea of *what the data looks like*. 
 
 *Hint:* This is one of those times when you should think about the cleanliness of your analysis. I added a single code chunk for you, but do you want to use more than one? Would you like to write more comments outside of the code chunk?
 
+To get the basic attributes of each data set I can use the _str()_ function which gives the number of rows, columns, the names of columns and, the type of variables used.
+
+### Steam Games
+Before working with a data set it is important to understand the types of variables being used here.
 ```{r}
 ### Steam Games ###
-str(steam_games, stringsAsFactors=FALSE, vec.len = 3, give.length= FALSE, nchar.max=20)
-
-steam_games %>% arrange(release_date) %>% select(name, release_date, all_reviews) %>% drop_na() %>% head(n=5)
+str(steam_games, 
+    stringsAsFactors=FALSE, 
+    vec.len = 3, 
+    give.length= FALSE, 
+    nchar.max=50)
 
 ```
 
+There's one interesting column, which is the release date column which is not numeric or date formatted, but rather long strings 
+```{r}
+steam_games %>% arrange(release_date) %>% select(release_date) %>% head(n=8)
+```
+
+Interestingly, some of the dates are not even dates but rather *coming soon* or even "¯\\_(ツ)_/¯"
+
+This means date's will have to be edited or even changed before they can be analyzed.
+
+### Vancouver Trees
+Again, first let's see what kinds of data are present 
+```{r}
+str(vancouver_trees, 
+    stringsAsFactors=FALSE, 
+    vec.len = 3, 
+    give.length= FALSE, 
+    nchar.max=50)
+```
+
+
+The diameter is an interesting column and could be used in multiple plots. I would want to check how many rows are missing observations
+
+```{r}
+
+vancouver_trees %>%
+  select(diameter) %>%
+  drop_na()%>%
+  dim()
+
+```
+Fortunately, all the trees have this observation! 
+
+
+### Parking Meters
+
+Again, I will look at the type of data we get from this data set
+```{r}
+str(parking_meters, 
+    stringsAsFactors=FALSE, 
+    vec.len = 3, 
+    give.length= FALSE, 
+    nchar.max=50)
+```
+
+The columns have a weird name and I will have to guess what they mean 
+I am assuming column 2 which reads __r_mf_9a_6p__ means rate for 1 hour of parking from Monday through to Friday between 9 am and 6pm.
+
+Although this data set has a lot of information, I do not think I want to use it further since I cannot think of a lot of questions I could ask or answer with the given information.
+
+### Cancer Sample
+
+Let's look at what data is present here.
+```{r}
+str(cancer_sample, 
+    stringsAsFactors=FALSE,
+    vec.len = 3, 
+    give.length= FALSE, 
+    nchar.max=50)
+
+```
+
+Interestingly again the column names do not make sense to someone not already familiar with oncology and even then there is no further information given so I would prefer to not use this for my analysis
+
+
+
 1.3 Now that you've explored the 4 datasets that you were initially most interested in, let's narrow it down to 2. What lead you to choose these 2? Briefly explain your choices below, and feel free to include any code in your explanation. 
 
+Looking at the outputs above, I narrowed down my choices to _steam_games_ and _vancouver_trees_. 
+One of the major reasons is that I can see more potential in these 2 data sets to analyze and be able to ask questions. 
+For e.g. __How many games published after 2010 have a overall positive review and how did this change from pre-2010?__
+
+The reason for not selecting the other 2 data sets is that I do not understnad the column names too well and I cannot find more information about them as well as I do not find the data interesting. Especially, in the _cancer_sample_ data-set, the column names do not provide enough information to the average person. Further reasoning for this selection can also be found in the comments provided before in _1.2_.  
+
+
 1.4 Time for the final decision! Going back to the beginning, it's important to have an *end goal* in mind. For example, if I had chosen the `titanic` dataset for my project, I might've wanted to explore the relationship between survival and other variables. Try to think of 1 research question that you would want to answer with each dataset. Note them down below, and make your final choice based on what seems more interesting to you!
+
+1. _steam_games_ : Are recent and overall reviews different between games that are free and not free?
+2. _vancouver_trees_: Do certain neighborhoods plant more trees of 1 species than other? 
+3. _parking_meters_: Are parking meters in certain local areas priced higher on average than parking meters in other areas? 
+4. _cancer_sample_ : Are concavity and smoothness positvely co-releated in samples with a "M" diagnosis? 
+
+
+For my final choice, I find _vancouver_trees_ the most interesting and I feel that it has the most potential to answer questions about people's reviews of recent games, and genres.  
+
+
 
 # Important note
 
@@ -104,13 +199,13 @@ If we rewind and go back to the learning objectives, you'll see that by the end 
 
 2.1 Complete *4 out of the following 8 exercises* to dive deeper into your data. All datasets are different and therefore, not all of these tasks may make sense for your data - which is why you should only answer *4*. Use *dplyr* and *ggplot*.
 
-1. Plot the distribution of a numeric variable.
-2. Create a new variable based on other variables in your data (only if it makes sense)
+1. Plot the distribution of a numeric variable.DONE
+2. Create a new variable based on other variables in your data (only if it makes sense). DONE
 3. Investigate how many missing values there are per variable. Can you find a way to plot this?
-4. Explore the relationship between 2 variables in a plot.
-5. Filter observations in your data according to your own criteria. Think of what you'd like to explore - again, if this was the `titanic` dataset, I may want to narrow my search down to passengers born in a particular year...
-6. Use a boxplot to look at the frequency of different observations within a single variable. You can do this for more than one variable if you wish!
-7. Make a new tibble with a subset of your data, with variables and observations that you are interested in exploring.
+4. Explore the relationship between 2 variables in a plot.DONE
+5. Filter observations in your data according to your own criteria. Think of what you'd like to explore - again, if this was the `titanic` dataset, I may want to narrow my search down to passengers born in a particular year...DONE. Combined with point 4
+6. Use a boxplot to look at the frequency of different observations within a single variable. You can do this for more than one variable if you wish!DONE
+7. Make a new tibble with a subset of your data, with variables and observations that you are interested in exploring. Done
 8. Use a density plot to explore any of your variables (that are suitable for this type of plot).
 
 2.2 For each of the 4 exercises that you complete, provide a *brief explanation* of why you chose that exercise in relation to your data (in other words, why does it make sense to do that?), and sufficient comments for a reader to understand your reasoning and code.
@@ -119,9 +214,99 @@ If we rewind and go back to the learning objectives, you'll see that by the end 
 
 So far, you have chosen a dataset and gotten familiar with it through exploring the data. Now it's time to figure out 4 research questions that you would like to answer with your data! Write the 4 questions and any additional comments at the end of this deliverable. These questions are not necessarily set in stone - TAs will review them and give you feedback; therefore, you may choose to pursue them as they are for the rest of the project, or make modifications!
 
-<!--- *****START HERE***** --->
+
+## Vancouver Trees
+
+First I wanted to look at the distribution of the diameters of all the trees in the data set
+```{r}
+vancouver_trees %>% ggplot(aes(diameter))+ geom_histogram(bins = 20,na.rm = TRUE, colour = "black")+ xlim(0,60)+xlab(label = "Diameter")
+```
+Here we can see that most of the trees have diameters between 20 and 0. No units were provided so I am assuming they mean inches.
+
+It would be interesting to see how the diameter relates to the different species of the trees
+First I need to find the average diameter per species. To do this I will create a new coloumn called avg_diameter
+
+```{r}
+
+trees_avg_dia = vancouver_trees %>% group_by(species_name)%>%mutate(avg_diameter=mean(diameter, na.rm=TRUE))
+trees_avg_dia %>% select(species_name, diameter, avg_diameter)  
+```
 
 
+Then I will plot the species versus their average diameter this could help city planners account for areas for trees in public parks and gardens. In order to fit the plot in the document I will only be looking at top 5 most frequent species. 
+
+```{r}
+species_count = as.data.frame(table(trees_avg_dia$species_name)) %>% 
+  arrange(desc(Freq))
+
+spec_count = as.tibble(species_count)
+
+species_count_name = spec_count$Var1[1:5]
+print(as.tibble(species_count_name))
+
+
+```
+From this table we can see the top 5 most frequent species of trees in the data set 
+
+Next I will filter these species from the data set with the average diameters and also only select 1 row of every species since that is all I need to plot the average diameter. 
+
+```{r}
+top_tree_dia = trees_avg_dia %>% 
+  select(species_name, avg_diameter) %>% 
+  filter(species_name %in% species_count_name)%>% 
+  distinct(species_name, .keep_all = TRUE) %>% 
+  ggplot(aes(species_name, avg_diameter))+ 
+    geom_col(colour="green", fill = "chocolate4")+
+    xlab(label = "Species")+ 
+    ylab(label = "Average Diameter")
+
+print(top_tree_dia)
+```
+This plot shows that 4 out of 5 of the most frequently observed tree species have average diameters > 10 inches. 
+
+Another way of showing this is by using box plots
+```{r}
+vancouver_trees %>%
+  filter(species_name %in% species_count_name) %>%
+  ggplot(aes(species_name, diameter))+
+  geom_boxplot(na.rm=TRUE) + 
+  stat_summary(fun = mean,colour= "red", fill="red")+
+  scale_y_break(c(70,125), scales="free") + 
+  xlab(label = "Species") +
+  ylab(label = "Diameter")
+
+
+
+```
+This plot shows the same information as the last with the means in red. Again 4 out of the 5 most frequently observed tree species have an average diameter > 10 inches. 
 ### Attribution
 
 Thanks to Icíar Fernández Boyano for mostly putting this together, and Vincenzo Coia for launching.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
