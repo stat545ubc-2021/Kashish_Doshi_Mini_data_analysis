@@ -1,6 +1,8 @@
 ---
 title: "Mini Data-Analysis Deliverable 1"
-output: html_document
+author: "Kashish Doshi"
+date: "October 9th, 2021"
+output: github_document
 ---
 
 # Welcome to your (maybe) first-ever data analysis project!
@@ -8,24 +10,24 @@ output: html_document
 And hopefully the first of many. Let's get started:
 
 1. Install the [`datateachr`](https://github.com/UBC-MDS/datateachr) package by typing the following into your **R terminal**:
-(also installed the Wes Anderson colour palette; credit: https://github.com/karthik/wesanderson)
+
 ```
 install.packages("ggbreak")
 install.packages("devtools")
 devtools::install_github("UBC-MDS/datateachr")
-devtools::install_github("karthik/wesanderson")
+
 
 
 ```
 
 2. Load the packages below.
 
-```{r echo=FALSE}
-library(datateachr)
-library(tidyverse)
-library(tibble)
-library(viridis)
-library(ggbreak)
+```{r}
+suppressMessages(library(datateachr))
+suppressMessages(library(tidyverse))
+suppressMessages(library(tibble))
+suppressMessages(library(viridis))
+suppressMessages(library(ggbreak))
 ```
 
 3. Make a repository in the https://github.com/stat545ubc-2021 Organization. You will be working with this repository for the entire data analysis project. You can either make it public, or make it private and add the TA's and Vincenzo as collaborators. 
@@ -87,10 +89,12 @@ And that is exactly the first thing that you will do!
 
 *Hint:* This is one of those times when you should think about the cleanliness of your analysis. I added a single code chunk for you, but do you want to use more than one? Would you like to write more comments outside of the code chunk?
 
-To get the basic attributes of each data set I can use the _str()_ function which gives the number of rows, columns, the names of columns and, the type of variables used.
+__To get the basic attributes of each data set I can use the _str()_ function which gives the number of rows, columns, the names of columns and, the type of variables used.__
 
 ### Steam Games
+
 Before working with a data set it is important to understand the types of variables being used here.
+
 ```{r}
 ### Steam Games ###
 str(steam_games, 
@@ -102,16 +106,24 @@ str(steam_games,
 ```
 
 There's one interesting column, which is the release date column which is not numeric or date formatted, but rather long strings 
+
 ```{r}
-steam_games %>% arrange(release_date) %>% select(release_date) %>% head(n=8)
+steam_games %>%
+  arrange(release_date) %>% 
+  select(release_date) %>% 
+  head(n=8)
 ```
 
 Interestingly, some of the dates are not even dates but rather *coming soon* or even "¯\\_(ツ)_/¯"
 
-This means date's will have to be edited or even changed before they can be analyzed.
+This means date's will have to be edited or even changed before they can be analyzed.This means more pre-processing will have to be done in order for me to analyse the components of this dataset.
+
+
 
 ### Vancouver Trees
+
 Again, first let's see what kinds of data are present 
+
 ```{r}
 str(vancouver_trees, 
     stringsAsFactors=FALSE, 
@@ -133,10 +145,28 @@ vancouver_trees %>%
 ```
 Fortunately, all the trees have this observation! 
 
+I also wanted to check if the different neighborhoods had similar number of trees sampled in this data set
+
+```{r}
+
+neigh_count = vancouver_trees %>% select(neighbourhood_name) %>%
+  table() %>%as_tibble() 
+neigh_count_sorted =neigh_count %>% 
+  rename(Neighbourhood ="." , Observations = n) %>%
+  arrange(desc(Observations))
+
+print(neigh_count_sorted, n=1e2)
+
+```
+
+This table was sorted by the number of observations. Looks like almost all neighborhoods have at least 4000 trees observed. This will make for good analyses. 
+
+
 
 ### Parking Meters
 
 Again, I will look at the type of data we get from this data set
+
 ```{r}
 str(parking_meters, 
     stringsAsFactors=FALSE, 
@@ -148,21 +178,26 @@ str(parking_meters,
 The columns have a weird name and I will have to guess what they mean 
 I am assuming column 2 which reads __r_mf_9a_6p__ means rate for 1 hour of parking from Monday through to Friday between 9 am and 6pm.
 
-Although this data set has a lot of information, I do not think I want to use it further since I cannot think of a lot of questions I could ask or answer with the given information.
+All the rates and hours are tabulated as characters and not numbers. Here again, I will have to extract the numeric value from the columns prior to running any analyses. 
+Although this data set has a lot of information, I do not think I want to use it further since I cannot think of a lot of questions I could ask or answer with the given information without heavy cleaning up. 
+
+
 
 ### Cancer Sample
 
 Let's look at what data is present here.
+
 ```{r}
 str(cancer_sample, 
     stringsAsFactors=FALSE,
     vec.len = 3, 
     give.length= FALSE, 
-    nchar.max=50)
+    nchar.max=50,
+    give.attr=FALSE)
 
 ```
 
-Interestingly again the column names do not make sense to someone not already familiar with oncology and even then there is no further information given so I would prefer to not use this for my analysis
+Interestingly again the column names are not informative to someone not already familiar with oncology and even then there is no further information given so I would prefer to not use this for my analysis
 
 
 
@@ -182,8 +217,9 @@ The reason for not selecting the other 2 data sets is that I do not understnad t
 3. _parking_meters_: Are parking meters in certain local areas priced higher on average than parking meters in other areas? 
 4. _cancer_sample_ : Are concavity and smoothness positvely co-releated in samples with a "M" diagnosis? 
 
+# Choice of data-set
 
-For my final choice, I find _vancouver_trees_ the most interesting and I feel that it has the most potential to answer questions about people's reviews of recent games, and genres.  
+For my final choice, I find _vancouver_trees_ the most interesting and I feel that it has the most potential to answer questions about people's reviews of recent games, and genres. For further clarification of this choice, please refer to the comments in the previous section. 
 
 
 
@@ -219,17 +255,28 @@ So far, you have chosen a dataset and gotten familiar with it through exploring 
 
 First I wanted to look at the distribution of the diameters of all the trees in the data set
 ```{r}
-vancouver_trees %>% ggplot(aes(diameter))+ geom_histogram(bins = 20,na.rm = TRUE, colour = "black")+ xlim(0,60)+xlab(label = "Diameter")
+vancouver_trees %>% 
+  ggplot(aes(diameter))+ 
+    geom_histogram(bins = 20,na.rm = TRUE, colour = "black")+ 
+    xlim(0,60)+
+    xlab(label = "Diameter") + 
+    ylab(label = "Counts")
+
 ```
-Here we can see that most of the trees have diameters between 20 and 0. No units were provided so I am assuming they mean inches.
+
+Here we can see that most of the trees have diameters between 20 and 0. No units were provided so I am _assuming_ they mean _inches_.
 
 It would be interesting to see how the diameter relates to the different species of the trees
 First I need to find the average diameter per species. To do this I will create a new coloumn called avg_diameter
 
 ```{r}
 
-trees_avg_dia = vancouver_trees %>% group_by(species_name)%>%mutate(avg_diameter=mean(diameter, na.rm=TRUE))
-trees_avg_dia %>% select(species_name, diameter, avg_diameter)  
+trees_avg_dia = vancouver_trees %>% 
+  group_by(species_name)%>%
+  mutate(avg_diameter=mean(diameter, na.rm=TRUE))
+
+trees_avg_dia %>% 
+  select(species_name, diameter, avg_diameter)  
 ```
 
 
@@ -242,11 +289,11 @@ species_count = as.data.frame(table(trees_avg_dia$species_name)) %>%
 spec_count = as.tibble(species_count)
 
 species_count_name = spec_count$Var1[1:5]
-print(as.tibble(species_count_name))
 
+species_count_name %>% as_tibble() %>% rename(Species=value)
 
 ```
-From this table we can see the top 5 most frequent species of trees in the data set 
+From this table we can see the top 5 most frequent species of trees in the data set. 
 
 Next I will filter these species from the data set with the average diameters and also only select 1 row of every species since that is all I need to plot the average diameter. 
 
@@ -262,6 +309,7 @@ top_tree_dia = trees_avg_dia %>%
 
 print(top_tree_dia)
 ```
+
 This plot shows that 4 out of 5 of the most frequently observed tree species have average diameters > 10 inches. 
 
 Another way of showing this is by using box plots
@@ -278,7 +326,47 @@ vancouver_trees %>%
 
 
 ```
+
 This plot shows the same information as the last with the means in red. Again 4 out of the 5 most frequently observed tree species have an average diameter > 10 inches. 
+
+I also wanted to check the distribution of tree diameters by neighbouhood. Again to make sure the plot fits the document I have selected the 5 neighbourhoods with the most number of observations. This was defined in the previous section. 
+
+```{r}
+
+vancouver_trees %>%
+  group_by(neighbourhood_name) %>%
+  filter(neighbourhood_name %in% neigh_count_sorted$Neighbourhood[1:5]) %>% # Used neigh_count_sorted from previous section
+  ggplot(aes(neighbourhood_name, diameter, colour=neighbourhood_name))+
+    geom_violin(na.rm = TRUE)+
+    scale_y_break(c(50,350), scales="free")+ 
+    theme(axis.text.x = element_blank(),axis.title.x = element_text(vjust=0.8,hjust = 0.3))+ 
+    xlab(label = "Neighbourhood")+
+    ylab(label = "Diameter")
+  
+
+```
+
+
+This plot shows that almost all neighborhoods have more trees with diameters <5 inches irrespective of the species of the trees. Dunbar-Southlands seems to have more trees with larger diameters as compared to the other 4. 
+
+
+### Research Questions
+
+1. Do trees that were planted earlier have larger diameters? Does this change with neighborhoods? 
+  In this question I would investigate trees grouped by their species. It would involve comparing the date of trees planted against the diameter and seeing if trees planted earlier than the others have larger diameters. I would also like to see if these species' diameter changes based on the neighborhood
+  
+2. Were certain species of trees planted more after a certain year? 
+  For this analysis I would look at how the overall composition of the different tree species in a year and plot changes over time. This will tell me if a few species start getting planted more or less after a certain year.
+  
+3. Did the planting of trees in Vancouver have a geographical change over time? 
+  Here I would look at the neighborhoods where the trees were planted and check if the trees were planted in all neighborhoods simultaneously or was did only some neighborhoods get trees first and later others were also included. I do understand that the data set does not comprise of each and every tree in Vancouver. But it would be interesting to see if some neighborhoods had "greener thumbs" than others. 
+  
+4. What is the relationship between the tree diameter and height. Does this change with species? 
+  This would involve grouping the tree species and seeing if the diameter and height can be explained via a linear or other models.
+  
+  
+  
+  
 ### Attribution
 
 Thanks to Icíar Fernández Boyano for mostly putting this together, and Vincenzo Coia for launching.
