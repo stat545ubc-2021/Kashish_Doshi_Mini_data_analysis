@@ -1,4 +1,4 @@
-#Author: Kashish Doshi
+# Author: Kashish Doshi
 
 This folder contains the source and knit files for milestone 3.
 
